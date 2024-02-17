@@ -73,8 +73,15 @@ void AEnemyCharacter::Fire()
         WeaponGun->Fire(); // Assuming enemies use a similar firing mechanism
     }
 
-    FVector Start = GetActorLocation();
-    FVector End = Start + (GetActorForwardVector() * 1000.0f); // Adjust range as needed
+    FVector Start = GetActorLocation() + FVector(0.0f, 0.0f, 20.0f);
+    FVector PlayerLocation = GetWorld()->GetFirstPlayerController()->GetPawn()->GetActorLocation(); // Get player's location
+    FVector DirectionToPlayer = (PlayerLocation - Start).GetSafeNormal(); // Direction vector from enemy to player
+    FVector End = Start + (DirectionToPlayer * 1000.0f); // Adjust range as needed
+
+    // Adjust the height based on the player's height relative to the enemy
+    float PlayerHeightDifference = PlayerLocation.Z - Start.Z;
+    End.Z += PlayerHeightDifference;
+
     FHitResult HitResult;
     FCollisionQueryParams Params;
     Params.AddIgnoredActor(this);

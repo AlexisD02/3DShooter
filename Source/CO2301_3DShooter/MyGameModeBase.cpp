@@ -48,20 +48,14 @@ void AMyGameModeBase::TakeCountdown()
     CurrentCountdownValue--;
 
     if (CurrentCountdownValue <= 0) {
-        // If countdown reaches zero, start the game
         StartGame();
     }
     else {
-        if (CurrentCountdownValue == 1) {
-            if (GoCountdownSound) {
-                UGameplayStatics::PlaySound2D(GetWorld(), GoCountdownSound);
-            }
+        if (CurrentCountdownValue == 1 && GoCountdownSound) {
+            UGameplayStatics::PlaySound2D(GetWorld(), GoCountdownSound);
         }
-        else {
-            // Play the start sound
-            if (CountdownSound) {
-                UGameplayStatics::PlaySound2D(GetWorld(), CountdownSound);
-            }
+        else if (CountdownSound) {
+            UGameplayStatics::PlaySound2D(GetWorld(), CountdownSound);
         }
     }
 }

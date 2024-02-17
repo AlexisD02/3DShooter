@@ -6,12 +6,6 @@
 #include "AIController.h"
 #include "EnemyAIController.h"
 
-
-UBTTask_TriggerAttack::UBTTask_TriggerAttack()
-{
-    NodeName = "Shoot";
-}
-
 EBTNodeResult::Type UBTTask_TriggerAttack::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
 {
     AEnemyAIController* AIController = Cast<AEnemyAIController>(OwnerComp.GetAIOwner());
