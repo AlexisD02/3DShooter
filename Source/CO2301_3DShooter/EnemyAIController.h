@@ -18,18 +18,11 @@ class CO2301_3DSHOOTER_API AEnemyAIController : public AAIController
 public:
     AEnemyAIController();
 
-    // Called every frame
-    virtual void Tick(float DeltaTime) override;
-
     // Enable the behavior tree
     void EnableBehaviorTree();
 
-    FTimerHandle CountdownTimerHandle;
-
 protected:
-    virtual void BeginPlay() override;
-
     // Reference to the Behavior Tree component
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI")
-        UBehaviorTree* EnemyBehaviorTree;
+    UBehaviorTree* EnemyBehaviorTree;
 };

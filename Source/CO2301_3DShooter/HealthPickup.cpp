@@ -38,9 +38,7 @@ void AHealthPickup::Tick(float DeltaTime)
     Super::Tick(DeltaTime); // Call parent class tick function
 
     // Rotate the actor
-    FRotator NewRotation = GetActorRotation();
-    NewRotation.Yaw += RotationSpeed * DeltaTime;
-    SetActorRotation(NewRotation);
+    AddActorLocalRotation(FRotator(0.f, RotationSpeed * DeltaTime, 0.f));
 
     // Float the actor up and down
     FVector NewLocation = GetActorLocation();

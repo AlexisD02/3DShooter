@@ -1,27 +1,28 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "ExplosiveProjectile.h"
+#include "EnemyCharacter.h"
 #include "Kismet/GameplayStatics.h"
-#include "Camera/CameraShakeBase.h"
 
 // Sets default values
 AExplosiveProjectile::AExplosiveProjectile()
 {
-    PrimaryActorTick.bCanEverTick = true;
+    PrimaryActorTick.bCanEverTick = false;
 
     // Create and setup components
     ProjectileMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("ProjectileMesh"));
     RootComponent = ProjectileMesh;
     ProjectileMesh->SetSimulatePhysics(true);
     ProjectileMesh->SetNotifyRigidBodyCollision(true);
+    ProjectileMesh->BodyInstance.SetUseCCD(true); // Enable Continuous Collision Detection (CCD) for the collision component
 
-    //CollisionComponent = CreateDefaultSubobject<USphereComponent>(TEXT("CollisionComponent"));
-    //CollisionComponent->SetupAttachment(RootComponent);
+    CollisionComponent = CreateDefaultSubobject<USphereComponent>(TEXT("CollisionComponent"));
+    CollisionComponent->SetupAttachment(RootComponent);
 
     MovementComponent = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("MovementComponent"));
     MovementComponent->SetUpdatedComponent(ProjectileMesh);
-    MovementComponent->InitialSpeed = 1000.0f;
-    MovementComponent->MaxSpeed = 1000.0f;
+    MovementComponent->InitialSpeed = 1200.0f;
+    MovementComponent->MaxSpeed = 1200.0f;
 
     BlastForceComponent = CreateDefaultSubobject<URadialForceComponent>(TEXT("BlastForceComponent"));
     BlastForceComponent->SetupAttachment(ProjectileMesh);
@@ -34,46 +35,34 @@ void AExplosiveProjectile::BeginPlay()
 {
     Super::BeginPlay();
 
-    UE_LOG(LogTemp, Warning, TEXT("BeginPlay called, setting explosion timer for %f seconds."), ExplosionDelay);
-    // Set a timer to call the Explode function after a delay
-    ProjectileMesh->OnComponentHit.AddDynamic(this, &AExplosiveProjectile::OnHit);
-
-    GetWorld()->GetTimerManager().SetTimer(ExplosionTimerHandle, this, &AExplosiveProjectile::Explode, ExplosionDelay, false);
-}
-
-// Called every frame
-void AExplosiveProjectile::Tick(float DeltaTime)
-{
-    Super::Tick(DeltaTime);
+    // Register hit event 
+    ProjectileMesh->OnComponentHit.AddDynamic(this, &AExplosiveProjectile::OnHit); // Set a timer to call the Explode function after a delay
+    // Register set timer for explosion
+    GetWorldTimerManager().SetTimer(ExplosionTimerHandle, this, &AExplosiveProjectile::Explode, ExplosionDelay, false);
 }
 
 void AExplosiveProjectile::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
-    HitEnemy = Cast<AEnemyCharacter>(OtherActor);
-    // Check if the OtherActor is an enemy here. This condition is just an example.
-    if (OtherActor && OtherActor != this && HitEnemy) {
-        Explode();
-    }
+    // Check if the hit actor is an enemy, if so, explode
+    AEnemyCharacter* HitEnemy = Cast<AEnemyCharacter>(OtherActor);
+    if (HitEnemy) Explode();
 }
 
 void AExplosiveProjectile::Explode()
 {
-    GetWorld()->GetTimerManager().ClearTimer(ExplosionTimerHandle);
+    GetWorldTimerManager().ClearTimer(ExplosionTimerHandle); // Clear explosion timer
 
-    UE_LOG(LogTemp, Warning, TEXT("Explode function called.")); 
-    if (ExplosionEffect) {
-        UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), ExplosionEffect, GetActorLocation(), GetActorRotation());
-    }
+    // Spawn explosion effect
+    if (ExplosionEffect) UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), ExplosionEffect, GetActorLocation(), GetActorRotation());
 
-    if (ExplosionSound) {
-        UGameplayStatics::PlaySoundAtLocation(this, ExplosionSound, GetActorLocation());
-    }
+    // Play explosion sound
+    if (ExplosionSound) UGameplayStatics::PlaySoundAtLocation(this, ExplosionSound, GetActorLocation());
 
-    if (BlastForceComponent) {
-        BlastForceComponent->FireImpulse();
-    }
+    // Apply fire impulse force
+    if (BlastForceComponent) BlastForceComponent->FireImpulse();
 
+    // Apply radial damage
     UGameplayStatics::ApplyRadialDamage(this, ExplosionDamage, GetActorLocation(), DamageRadius, UDamageType::StaticClass(), TArray<AActor*>(), this, nullptr, true);
 
-    Destroy();
+    Destroy(); // Destroy the projectile
 }

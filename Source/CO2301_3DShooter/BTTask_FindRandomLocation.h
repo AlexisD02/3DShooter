@@ -16,4 +16,7 @@ class CO2301_3DSHOOTER_API UBTTask_FindRandomLocation : public UBTTask_Blackboar
 
 protected:
     virtual EBTNodeResult::Type ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) override;
+
+private:
+	const float RandomRadius = 6000.0f;
 };

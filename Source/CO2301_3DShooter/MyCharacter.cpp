@@ -14,11 +14,9 @@
 // Sets default values
 AMyCharacter::AMyCharacter()
 {
-    // Set this character to call Tick() every frame
-    PrimaryActorTick.bCanEverTick = false;
+    PrimaryActorTick.bCanEverTick = false;  // Set this character to call Tick() to false
 
-    // Auto Possess Player
-    AutoPossessPlayer = EAutoReceiveInput::Player0;
+    AutoPossessPlayer = EAutoReceiveInput::Player0; // Auto Possess Player
 
     // Create a camera boom (pulls in towards the player if there is a collision)
     CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
@@ -36,26 +34,27 @@ AMyCharacter::AMyCharacter()
     FollowCamera->SetRelativeLocation(FVector(0, 40, 20));
     FollowCamera->bUsePawnControlRotation = false; // Camera does not rotate relative to arm
 
-
+    // Create a spawn point for projectile
     ProjectileSpawnPoint = CreateDefaultSubobject<USceneComponent>(TEXT("ProjectileSpawnPoint"));
     ProjectileSpawnPoint->SetupAttachment(RootComponent);
     ProjectileSpawnPoint->SetRelativeLocation(FVector(40.0f, 0.0f, 60.0f));
     ProjectileSpawnPoint->SetRelativeRotation(FRotator(0.0f, 20.0f, 0.0f));
 
-    // Initialize the Spring Arm Component
+    // Initialize the Spring Arm Component for the Mini Map
     MiniMapArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("MiniMapArm"));
     MiniMapArm->SetupAttachment(RootComponent);
     MiniMapArm->SetRelativeRotation(FRotator(-90.0f, 0.0f, 0.0f)); // Pointing downwards
     MiniMapArm->TargetArmLength = 600.0f; // Height above the character
     MiniMapArm->bDoCollisionTest = false; // Prevent the arm from adjusting its length
 
-    // Initialize the Scene Capture Component
+    // Initialize the Scene Capture Component for the Mini Map
     MiniMapCaptureComponent = CreateDefaultSubobject<USceneCaptureComponent2D>(TEXT("MiniMapCapture"));
     MiniMapCaptureComponent->SetupAttachment(MiniMapArm);
     MiniMapCaptureComponent->ProjectionType = ECameraProjectionMode::Orthographic;
     MiniMapCaptureComponent->OrthoWidth = 4096.0f;
     MiniMapCaptureComponent->bCaptureEveryFrame = true;
 
+    // Initialize ammunition counts
     CurrentBulletsInMagazine = MaxMagazineSize;
     TotalAmmunition = MaxMagazineSize * MaxNumberOfMagazines;
 }
@@ -73,6 +72,7 @@ void AMyCharacter::BeginPlay()
     bIsProne = false;
     bIsReloading = false;
     bIsRunning = false;
+    bMainPlayerDead = false;
     AnimInstance = GetMesh()->GetAnimInstance();
     CurrentStamina = MaxStamina;
 
@@ -99,7 +99,8 @@ void AMyCharacter::AttachGun()
 
 void AMyCharacter::StandToCrouch()
 {
-    if (CanCrouch() && !bIsProne) {
+    // Transition from standing to crouching if possible and check if not prone
+    if (CanCrouch() && !bIsProne) { 
         Crouch();
         bCrouchButtonDown = true;
     }
@@ -107,7 +108,8 @@ void AMyCharacter::StandToCrouch()
 
 void AMyCharacter::CrouchToStand()
 {
-    if (!bIsProne) {
+    // Transition from crouching to standing and check if not prone
+    if (!bIsProne) { 
         UnCrouch();
         bCrouchButtonDown = false;
     }
@@ -115,8 +117,8 @@ void AMyCharacter::CrouchToStand()
 
 void AMyCharacter::Sprint()
 {
+    // Start sprinting if not already sprinting and sufficient stamina
     if (!bIsRunning && CurrentStamina > 0) {
-        //UE_LOG(LogTemp, Warning, TEXT("Stamina set to: %d"), Stamina);
         bIsRunning = true;
         GetCharacterMovement()->MaxWalkSpeed = 1200.0f;
         GetWorldTimerManager().ClearTimer(StaminaRecoveryTimerHandle);
@@ -126,7 +128,8 @@ void AMyCharacter::Sprint()
 
 void AMyCharacter::StopSprinting()
 {
-    if (bIsRunning) {
+    // Stop sprinting
+    if (bIsRunning) { 
         bIsRunning = false;
         GetCharacterMovement()->MaxWalkSpeed = 600.0f;
         GetWorldTimerManager().ClearTimer(StaminaDrainTimerHandle);
@@ -136,6 +139,7 @@ void AMyCharacter::StopSprinting()
 
 void AMyCharacter::DrainStamina()
 {
+    // Drain stamina while sprinting
     CurrentStamina -= StaminaDrainRate * 0.1f;
     if (CurrentStamina <= 0) {
         CurrentStamina = 0;
@@ -145,6 +149,7 @@ void AMyCharacter::DrainStamina()
 
 void AMyCharacter::RecoverStamina()
 {
+    // Recover stamina over time
     CurrentStamina += StaminaRecoveryRate * 0.1f;
     if (CurrentStamina >= MaxStamina) {
         CurrentStamina = MaxStamina;
@@ -154,6 +159,7 @@ void AMyCharacter::RecoverStamina()
 
 void AMyCharacter::MoveForward(float Value)
 {
+    // Move character forward/backward and check if not prone
     if (!bIsProne && Value != 0.0f) {
         FVector Direction = FRotationMatrix(Controller->GetControlRotation()).GetScaledAxis(EAxis::X);
         AddMovementInput(Direction, Value);
@@ -162,6 +168,7 @@ void AMyCharacter::MoveForward(float Value)
 
 void AMyCharacter::MoveRight(float Value)
 {
+    // Move character right/left and check if not prone
     if (!bIsProne && Value != 0.0f) {
         FVector Direction = FRotationMatrix(Controller->GetControlRotation()).GetScaledAxis(EAxis::Y);
         AddMovementInput(Direction, Value);
@@ -170,18 +177,19 @@ void AMyCharacter::MoveRight(float Value)
 
 void AMyCharacter::Turn(float Value)
 {
+    // Turn character horizontally
     AddControllerYawInput(Value);
 }
 
 void AMyCharacter::LookUp(float Value)
 {
+    // Look up/down
     AddControllerPitchInput(Value);
 }
 
 void AMyCharacter::ToJump()
 {
-    if (CanJump()) // Assuming CanJump() is a method that checks if the character can jump
-    {
+    if (CanJump()) { // Assuming CanJump() is a method that checks if the character can jump
         Jump();
         bJumpButtonDown = true;
     }
@@ -197,33 +205,25 @@ void AMyCharacter::Prone()
 {
     if (!bCrouchButtonDown) {
         if (!bIsProne) {
-            UE_LOG(LogTemp, Warning, TEXT("Prone State True"));
             Crouch();
-            // Transition to prone
-            bIsProne = true;
+            bIsProne = true; // Transition to prone
         }
         else {
-            UE_LOG(LogTemp, Warning, TEXT("Prone State False"));
             UnCrouch();
-            // Transition out of prone
-            bIsProne = false;
+            bIsProne = false; // Transition out of prone
         }
     }
 }
 
 void AMyCharacter::Fire()
 {
-    if (CurrentBulletsInMagazine > 0 && !bIsReloading) {
+    if (!bIsReloading && CurrentBulletsInMagazine > 0) {
         if (!bIsRunning) {
             CurrentBulletsInMagazine--;
-            if (WeaponGun && WeaponGunClass) // Ensure the gun is not null
-            {
-                WeaponGun->Fire(); // Call the Fire function
-            }
 
-            if (AnimInstance && ShootAnimationMontage) {
-                AnimInstance->Montage_Play(ShootAnimationMontage);
-            }
+            if (WeaponGun && WeaponGunClass) WeaponGun->Fire(); // Call the Fire function
+
+            if (AnimInstance && ShootAnimationMontage) AnimInstance->Montage_Play(ShootAnimationMontage);
 
             AController* ControllerRef = GetController();
             if (!ControllerRef) return; // Early return if no controller
@@ -239,55 +239,45 @@ void AMyCharacter::Fire()
 
             // Perform the raycast
             if (GetWorld()->LineTraceSingleByChannel(HitResult, CameraLocation, End, ECC_Visibility)) {
-                // Always draw the debug line for visualization
-                DrawDebugLine(GetWorld(), CameraLocation, End, FColor::Green, false, 1.0f, 0, 1.0f);
-
-                HitEnemy = Cast<AEnemyCharacter>(HitResult.GetActor());
+                // Check if the hit actor is an enemy character
+                AEnemyCharacter* HitEnemy = Cast<AEnemyCharacter>(HitResult.GetActor());
                 if (HitEnemy) {
-                    // Apply damage if the hit actor is an enemy character
+                    // Apply damage to an enemy character
                     UGameplayStatics::ApplyDamage(HitEnemy, DamageAmount, ControllerRef, this, UDamageType::StaticClass());
-                    DrawDebugLine(GetWorld(), CameraLocation, End, FColor::Red, false, 1.0f, 0, 1.0f);
                 }
 
-                // Check if the hit actor is a DestructibleBarrel
-                HitBarrel = Cast<ADestructibleBarrel>(HitResult.GetActor());
+                // Check if the hit actor is the destructible barrel
+                ADestructibleBarrel* HitBarrel = Cast<ADestructibleBarrel>(HitResult.GetActor());
                 if (HitBarrel) {
                     // Apply damage to the barrel
                     UGameplayStatics::ApplyDamage(HitBarrel, DamageAmount, ControllerRef, this, UDamageType::StaticClass());
-                    DrawDebugLine(GetWorld(), CameraLocation, End, FColor::Blue, false, 1.0f, 0, 1.0f);
                 }
             }
         }
     }
-    else if(!bIsReloading) {
-        if (WeaponGun && WeaponGunClass) {
-            WeaponGun->EmptyMug();
-        }
+    else if (!bIsReloading) {
+        if (WeaponGun && WeaponGunClass) WeaponGun->EmptyMug();
     }
 }
 
 void AMyCharacter::Reload()
 {
-    if ((TotalAmmunition > 0 && CurrentBulletsInMagazine < MaxMagazineSize) && !bIsReloading)
-    {
+    if ((TotalAmmunition > 0 && CurrentBulletsInMagazine < MaxMagazineSize) && !bIsReloading) {
         bIsReloading = true;
-        UE_LOG(LogTemp, Warning, TEXT("Reload Animation"));
-
-        if (AnimInstance && ReloadAnimationMontage)
-        {
+        if (AnimInstance && ReloadAnimationMontage) {
             AnimInstance->Montage_Play(ReloadAnimationMontage);
             float AnimationDuration = ReloadAnimationMontage->GetPlayLength();
 
             // Set a timer to update the bullet count after the animation plays
-            GetWorld()->GetTimerManager().SetTimer(ReloadTimerHandle, this, &AMyCharacter::UpdateBulletCountAfterReload, AnimationDuration, false);
+            GetWorldTimerManager().SetTimer(ReloadTimerHandle, this, &AMyCharacter::UpdateBulletCountAfterReload, AnimationDuration, false);
         }
     }
 }
 
 void AMyCharacter::UpdateBulletCountAfterReload()
 {
+    // Update bullet count after reloading
     bIsReloading = false;
-    UE_LOG(LogTemp, Warning, TEXT("Reload Count"));
     int32 BulletsNeeded = MaxMagazineSize - CurrentBulletsInMagazine;
     int32 BulletsToReload = FMath::Min(BulletsNeeded, TotalAmmunition);
 
@@ -297,36 +287,27 @@ void AMyCharacter::UpdateBulletCountAfterReload()
 
 void AMyCharacter::AddAmmo()
 {
-    TotalAmmunition += MaxMagazineSize * MaxNumberOfMagazines;
+    TotalAmmunition += MaxMagazineSize * MaxNumberOfMagazines; // Add ammunition
 }
 
 void AMyCharacter::AddHealth()
 {
-    // Add the specified amount to the character's health
-    CurrentHealth += HealthAmount;
-    if (CurrentHealth > MaxHealth)
-    {
-        CurrentHealth = MaxHealth;
-    }
+    CurrentHealth = FMath::Min(CurrentHealth + HealthAmount, MaxHealth); // Add health, ensuring it doesn't exceed the maximum health
 }
 
 void AMyCharacter::AddGrenade()
 {
-    GrenadesRemaining++;
+    GrenadesRemaining++; // Increment the number of grenades remaining
 }
 
 void AMyCharacter::AnimDance()
 {
     AMyPlayerController* PlayerController = Cast<AMyPlayerController>(GetWorld()->GetFirstPlayerController());
-    PlayerController->DisableInput(PlayerController);
+    PlayerController->DisableInput(PlayerController); // Disable all main player input
 
-    if (WeaponGun) {
-        // Set the visibility of the gun to false
-        WeaponGun->SetActorHiddenInGame(true);
-    }
+    if (WeaponGun) WeaponGun->SetActorHiddenInGame(true); // Set the visibility of the gun to true
 
-    if (AnimInstance && DanceAnimationMontage)
-    {
+    if (AnimInstance && DanceAnimationMontage) {
         AnimInstance->Montage_Play(DanceAnimationMontage);
         float DanceAnimationDuration = DanceAnimationMontage->GetPlayLength();
 
@@ -338,11 +319,8 @@ void AMyCharacter::AnimDance()
 void AMyCharacter::EnableAllInput()
 {
     AMyPlayerController* PlayerController = Cast<AMyPlayerController>(GetWorld()->GetFirstPlayerController());
-    PlayerController->EnableInput(PlayerController);
-    if (WeaponGun) {
-        // Set the visibility of the gun to true
-        WeaponGun->SetActorHiddenInGame(false);
-    }
+    PlayerController->EnableInput(PlayerController); // Enable all main player input
+    if (WeaponGun) WeaponGun->SetActorHiddenInGame(false); // Set the visibility of the gun to true
 }
 
 void AMyCharacter::ThrowGrenade()
@@ -353,11 +331,10 @@ void AMyCharacter::ThrowGrenade()
         FRotator Rotation = ProjectileSpawnPoint->GetComponentRotation();
 
         // Spawn the grenade
-        AExplosiveProjectile* Grenade = GetWorld()->SpawnActor<AExplosiveProjectile>(GrenadeClass, Location, Rotation);
-        // Set the owner of the grenade to this character
-        if (Grenade) {
+        Grenade = GetWorld()->SpawnActor<AExplosiveProjectile>(GrenadeClass, Location, Rotation);
+        if (Grenade) { 
             GrenadesRemaining--;
-            Grenade->SetOwner(this);
+            Grenade->SetOwner(this); // Set the owner of the grenade to this character
         }
     }
 }
@@ -371,13 +348,22 @@ float AMyCharacter::TakeDamage(float DamageAmountChar, FDamageEvent const& Damag
     CurrentHealth -= DamageApplied;
 
     // Check if the character is out of health and should die
-    if (CurrentHealth <= 0.0f)
-    {
-        Destroy();
-        AMyGameModeBase* GameMode = Cast<AMyGameModeBase>(UGameplayStatics::GetGameMode(GetWorld()));
-        GameMode->EndGame(false); // Player lost
+    if (CurrentHealth <= 0.0f) {
+        bMainPlayerDead = true;
+        BP_MainPlayerDead();
+        AMyPlayerController* PlayerController = Cast<AMyPlayerController>(GetWorld()->GetFirstPlayerController());
+        PlayerController->DisableInput(PlayerController);
+        if (DeathSound) UGameplayStatics::PlaySoundAtLocation(this, DeathSound, GetActorLocation());
+        GetWorldTimerManager().SetTimer(GameOverTimer, this, &AMyCharacter::DisplayGameOverScreen, 2.0f, false);
     }
 
     // Return the actual damage taken, which might be different from DamageAmount due to modifiers or armor
     return DamageApplied;
+}
+
+void AMyCharacter::DisplayGameOverScreen()
+{
+    // Retrieve the game mode and end the game with player loss
+    AMyGameModeBase* GameMode = Cast<AMyGameModeBase>(UGameplayStatics::GetGameMode(GetWorld()));
+    GameMode->EndGame(false); // Player lost
 }

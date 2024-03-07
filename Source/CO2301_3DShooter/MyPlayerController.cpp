@@ -1,14 +1,11 @@
-    // Fill out your copyright notice in the Description page of Project Settings.
+// Fill out your copyright notice in the Description page of Project Settings.
 
 
 #include "MyPlayerController.h"
 #include "GameFramework/Character.h"
-#include "Blueprint/UserWidget.h"
-
 
 AMyPlayerController::AMyPlayerController()
 {
-    // Constructor logic can be here
 }
 
 void AMyPlayerController::BeginPlay()
@@ -22,62 +19,12 @@ void AMyPlayerController::BeginPlay()
     InitializeGuide();
 }
 
-void AMyPlayerController::StartGame() {
+void AMyPlayerController::StartGame() 
+{
     RemoveGuideFromViewport();
     InitializeCrosshair();
     InitializeTimer();
     InitializeMiniMap();
-}
-
-void AMyPlayerController::InitializeGuide()
-{
-    if (GuideWidgetClass) {
-        GuideWidget = CreateWidget(this, GuideWidgetClass);
-        if (GuideWidget) {
-            GuideWidget->AddToViewport();
-        }
-    }
-}
-
-void AMyPlayerController::RemoveGuideFromViewport()
-{
-    UE_LOG(LogTemp, Warning, TEXT("RemoveGuideFromViewport called"));
-    // Remove the widget from the viewport
-    if (GuideWidget)
-    {
-        GuideWidget->RemoveFromParent();
-    }
-}
-
-void AMyPlayerController::InitializeCrosshair()
-{
-    // Check if the CrosshairWidgetClass is valid before trying to create it
-    if (CrosshairWidgetClass) {
-        CrosshairWidget = CreateWidget(this, CrosshairWidgetClass);
-        if (CrosshairWidget) {
-            CrosshairWidget->AddToViewport();
-        }
-    }
-}
-
-void AMyPlayerController::InitializeTimer()
-{
-    if (TimerWidgetClass) {
-        TimerWidget = CreateWidget(this, TimerWidgetClass);
-        if (TimerWidget) {
-            TimerWidget->AddToViewport();
-        }
-    }
-}
-
-void AMyPlayerController::InitializeMiniMap()
-{
-    if (MiniMapWidgetClass) {
-        MiniMapWidget = CreateWidget(this, MiniMapWidgetClass);
-        if (MiniMapWidget) {
-            MiniMapWidget->AddToViewport();
-        }
-    }
 }
 
 void AMyPlayerController::SetupInputComponent()
@@ -118,114 +65,137 @@ void AMyPlayerController::SetupInputComponent()
 
     InputComponent->BindAction("AnimDance", IE_Pressed, this, &AMyPlayerController::CallAnimDance);
 
-    // Bind the TogglePauseMenu function to the TogglePause action
+    // Bind the TogglePauseMenu action
     InputComponent->BindAction("TogglePause", IE_Pressed, this, &AMyPlayerController::TogglePauseMenu);
+}
+
+void AMyPlayerController::InitializeGuide()
+{
+    if (GuideWidgetClass) {
+        GuideWidget = CreateWidget(this, GuideWidgetClass);
+        if (GuideWidget) GuideWidget->AddToViewport();
+    }
+}
+
+void AMyPlayerController::RemoveGuideFromViewport()
+{
+    // Remove the widget from the viewport
+    if (GuideWidget) GuideWidget->RemoveFromParent();
+}
+
+void AMyPlayerController::InitializeCrosshair()
+{
+    // Check if the CrosshairWidgetClass is valid before trying to create it
+    if (CrosshairWidgetClass) {
+        CrosshairWidget = CreateWidget(this, CrosshairWidgetClass);
+        if (CrosshairWidget) CrosshairWidget->AddToViewport();
+    }
+}
+
+void AMyPlayerController::InitializeTimer()
+{
+    if (TimerWidgetClass) {
+        TimerWidget = CreateWidget(this, TimerWidgetClass);
+        if (TimerWidget) TimerWidget->AddToViewport();
+    }
+}
+
+void AMyPlayerController::InitializeMiniMap()
+{
+    if (MiniMapWidgetClass) {
+        MiniMapWidget = CreateWidget(this, MiniMapWidgetClass);
+        if (MiniMapWidget) MiniMapWidget->AddToViewport();
+    }
+}
+
+void AMyPlayerController::TogglePauseMenu()
+{
+    if (!PauseMenuWidget && PauseMenuWidgetClass) { // Create the pause menu widget if it doesn't exist
+        PauseMenuWidget = CreateWidget(this, PauseMenuWidgetClass);
+    }
+
+    if (PauseMenuWidget) { // Add the widget to the viewport and pause the game
+        PauseMenuWidget->AddToViewport();
+        SetInputMode(FInputModeUIOnly());
+        bShowMouseCursor = true;
+        SetPause(true);
+    }
 }
 
 // Function implementations
 void AMyPlayerController::CallJump()
 {
-    if (ControlledCharacter) {
-        ControlledCharacter->ToJump();
-    }
+    if (ControlledCharacter) ControlledCharacter->ToJump();
 }
 
 void AMyPlayerController::CallStopJumping()
 {
-    if (ControlledCharacter) {
-        ControlledCharacter->ToStopJumping();
-    }
+    if (ControlledCharacter) ControlledCharacter->ToStopJumping();
 }
 
 void AMyPlayerController::CallSprint()
 {
-    if (ControlledCharacter) {
-        ControlledCharacter->Sprint();
-    }
+    if (ControlledCharacter) ControlledCharacter->Sprint();
 }
 
 void AMyPlayerController::CallStopSprinting()
 {
-    if (ControlledCharacter) {
-        ControlledCharacter->StopSprinting();
-    }
+    if (ControlledCharacter) ControlledCharacter->StopSprinting();
 }
 
 void AMyPlayerController::CallStandToCrouch()
 {
-    if (ControlledCharacter) {
-        ControlledCharacter->StandToCrouch();
-    }
+    if (ControlledCharacter) ControlledCharacter->StandToCrouch();
 }
 
 void AMyPlayerController::CallCrouchToStand()
 {
-    if (ControlledCharacter) {
-        ControlledCharacter->CrouchToStand();
-    }
+    if (ControlledCharacter) ControlledCharacter->CrouchToStand();
 }
 
 void AMyPlayerController::CallForwards(float Value)
 {
-    if (ControlledCharacter) {
-        ControlledCharacter->MoveForward(Value);
-    }
+    if (ControlledCharacter) ControlledCharacter->MoveForward(Value);
 }
 
 void AMyPlayerController::CallRight(float Value)
 {
-    if (ControlledCharacter) {
-        ControlledCharacter->MoveRight(Value);
-    }
+    if (ControlledCharacter) ControlledCharacter->MoveRight(Value);
 }
 
 void AMyPlayerController::CallTurn(float Value)
 {
-    if (ControlledCharacter) {
-        ControlledCharacter->Turn(Value);
-    }
+    if (ControlledCharacter) ControlledCharacter->Turn(Value);
 }
 
 void AMyPlayerController::CallLookUp(float Value)
 {
-    if (ControlledCharacter) {
-        ControlledCharacter->LookUp(Value);
-    }
+    if (ControlledCharacter) ControlledCharacter->LookUp(Value);
 }
 
 void AMyPlayerController::CallProne()
 {
-    if (ControlledCharacter) {
-        ControlledCharacter->Prone();
-    }
+    if (ControlledCharacter) ControlledCharacter->Prone();
 }
 
 void AMyPlayerController::CallFire()
 {
-    if (ControlledCharacter) {
-        ControlledCharacter->Fire();
-    }
+    if (ControlledCharacter) ControlledCharacter->Fire();
 }
 
 void AMyPlayerController::CallThrowGrenade()
 {
-    if (ControlledCharacter) {
-        ControlledCharacter->ThrowGrenade();
-    }
+    if (ControlledCharacter) ControlledCharacter->ThrowGrenade();
 }
 
 void AMyPlayerController::CallOnReloadPressed()
 {
-    if (ControlledCharacter) {
-        ControlledCharacter->Reload();
-    }
+    if (ControlledCharacter) ControlledCharacter->Reload();
 }
 
 void AMyPlayerController::CallAnimDance()
 {
-    if (ControlledCharacter) {
-        ControlledCharacter->AnimDance();
-    }
+    if (ControlledCharacter) ControlledCharacter->AnimDance();
 }
 
 int32 AMyPlayerController::GetCurrentBullets()
@@ -261,22 +231,4 @@ float AMyPlayerController::GetCurrentStamina()
 float AMyPlayerController::GetMaxStamina()
 {
     return ControlledCharacter->MaxStamina;
-}
-
-void AMyPlayerController::TogglePauseMenu()
-{
-    if (!PauseMenuWidget && PauseMenuWidgetClass)
-    {
-        // Create the pause menu widget if it doesn't exist
-        PauseMenuWidget = CreateWidget(this, PauseMenuWidgetClass);
-    }
-
-    if (PauseMenuWidget)
-    {
-        // Add the widget to the viewport and pause the game
-        PauseMenuWidget->AddToViewport();
-        SetInputMode(FInputModeUIOnly());
-        bShowMouseCursor = true;
-        SetPause(true);     
-    }
 }

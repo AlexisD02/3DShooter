@@ -46,5 +46,4 @@ private:
 
 	// Current time since the game started
 	float RunningTime = 0.0f;
-
 };

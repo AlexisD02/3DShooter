@@ -4,7 +4,6 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
-#include "MyGameModeBase.h"
 #include "Animation/AnimInstance.h"
 #include "Animation/AnimMontage.h"
 #include "Gun.h"
@@ -25,19 +24,10 @@ protected:
 	virtual void BeginPlay() override;
 
 public:	
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
-
-	UFUNCTION()
 	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
 
 	UPROPERTY(EditAnywhere)
 	float Health = 100.0f;
-
-	AMyGameModeBase* MyGameMode;
-
-	// Static method to count enemies and update the game mode
-	static void InitializeEnemyCountForGameMode(UWorld* World);
 
 	// Function to attach the gun
 	UFUNCTION(BlueprintCallable)
@@ -55,4 +45,24 @@ public:
 	UFUNCTION()
 	void DestroyGun();
 
+	UPROPERTY(BlueprintReadOnly)
+	bool bDamageReceived;
+
+	UFUNCTION()
+	void DestroyEnemy();
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	bool bIsDead;
+
+	UFUNCTION()
+	void EnemyIsDead();
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void BP_EnemyIsDead();
+
+private:
+	FTimerHandle DestroyEnemyTimer;
+
+	UPROPERTY(EditAnywhere)
+	float DestroyEnemyTime = 3.0f;
 };

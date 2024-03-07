@@ -7,6 +7,7 @@
 #include "Blueprint/UserWidget.h"
 #include "Components/ProgressBar.h"
 #include "MyCharacter.h"
+#include "MyGameModeBase.h"
 
 #include "MyPlayerController.generated.h"
 
@@ -23,59 +24,93 @@ public:
 
     virtual void SetupInputComponent() override;
 
-    // Function declarations
-    void CallJump();
-    void CallStopJumping();
-    void CallSprint();
-    void CallStopSprinting();
-    void CallStandToCrouch();
-    void CallCrouchToStand();
-    void CallForwards(float Value);
-    void CallRight(float Value);
-    void CallTurn(float Value);
-    void CallLookUp(float Value);
-    void CallProne();
-    virtual void CallFire();
-    void CallThrowGrenade();
-    void CallOnReloadPressed();
-    void CallAnimDance();
-
 protected:
     // Called when the game starts
     virtual void BeginPlay() override;
 
 private:
+    UFUNCTION()
+    void CallJump();
+
+    UFUNCTION()
+    void CallStopJumping();
+
+    UFUNCTION()
+    void CallSprint();
+
+    UFUNCTION()
+    void CallStopSprinting();
+
+    UFUNCTION()
+    void CallStandToCrouch();
+
+    UFUNCTION()
+    void CallCrouchToStand();
+
+    UFUNCTION()
+    void CallForwards(float Value);
+
+    UFUNCTION()
+    void CallRight(float Value);
+
+    UFUNCTION()
+    void CallTurn(float Value);
+
+    UFUNCTION()
+    void CallLookUp(float Value);
+
+    UFUNCTION()
+    void CallProne();
+
+    UFUNCTION()
+    void CallFire();
+
+    UFUNCTION()
+    void CallThrowGrenade();
+
+    UFUNCTION()
+    void CallOnReloadPressed();
+
+    UFUNCTION()
+    void CallAnimDance();
+
+    UFUNCTION()
+    void InitializeCrosshair();
+
+    UFUNCTION()
+    void TogglePauseMenu();
+
+    UFUNCTION()
+    void InitializeMiniMap();
+
+    UFUNCTION()
+    void InitializeTimer();
+
+    UFUNCTION()
+    void InitializeGuide();
+
+    UFUNCTION()
+    void RemoveGuideFromViewport();
+
     AMyCharacter* ControlledCharacter;
 
     AMyGameModeBase* GameMode;
 
-    UPROPERTY(EditAnywhere, Category = "UI")
+    UPROPERTY(EditDefaultsOnly)
     TSubclassOf<UUserWidget> CrosshairWidgetClass;
 
     UPROPERTY()
     UUserWidget* CrosshairWidget;
 
-    void InitializeCrosshair();
-
-    UPROPERTY(EditAnywhere)
-    int AmmoCount = 10;
-
-    // Reference to the pause menu widget class
     UPROPERTY(EditDefaultsOnly)
     TSubclassOf<UUserWidget> PauseMenuWidgetClass;
 
-    // The actual instance of the pause menu widget
     UPROPERTY()
     UUserWidget* PauseMenuWidget;
 
-    // Function to toggle the pause menu
-    void TogglePauseMenu();
-
-    // Reference to the pause menu widget class
     UPROPERTY(EditDefaultsOnly)
     TSubclassOf<UUserWidget> TimerWidgetClass;
 
-    // The actual instance of the pause menu widget
     UPROPERTY()
     UUserWidget* TimerWidget;
 
@@ -85,23 +120,20 @@ private:
     UPROPERTY()
     UUserWidget* GuideWidget;
 
-    // Function to Initialize and Display the Mini Map
-    void InitializeMiniMap();
+    UPROPERTY(EditDefaultsOnly)
+    TSubclassOf<UUserWidget> MiniMapWidgetClass;
 
-    void InitializeTimer();
+    UPROPERTY()
+    UUserWidget* MiniMapWidget;
 
-    void InitializeGuide();
+    FTimerHandle TimerHandleRemoveWidget;
 
-    void RemoveGuideFromViewport();
-
-    UFUNCTION(BlueprintPure)
-    int32 GetCurrentBullets();
-
-    UFUNCTION(BlueprintPure)
-    int32 GetTotalAmmunition();
+public:
+    UFUNCTION()
+    void StartGame();
 
     UFUNCTION(BlueprintPure)
-    int32 GetGrenadesRemaining();
+    float GetMaxStamina();
 
     UFUNCTION(BlueprintPure)
     float GetCurrentHealth();
@@ -113,20 +145,11 @@ private:
     float GetCurrentStamina();
 
     UFUNCTION(BlueprintPure)
-    float GetMaxStamina();
+    int32 GetCurrentBullets();
 
-public:
-    // Reference to the Mini Map Widget Class
-    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "UI")
-    TSubclassOf<UUserWidget> MiniMapWidgetClass;
+    UFUNCTION(BlueprintPure)
+    int32 GetTotalAmmunition();
 
-    UPROPERTY()
-    UUserWidget* MiniMapWidget;
-
-    FTimerHandle TimerHandleRemoveWidget;
-
-    float DelayInSeconds = 3.0f;
-
-    void StartGame();
-
+    UFUNCTION(BlueprintPure)
+    int32 GetGrenadesRemaining();
 };

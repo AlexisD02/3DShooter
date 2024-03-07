@@ -6,8 +6,7 @@
 #include "GameFramework/GameModeBase.h"
 #include "Sound/SoundBase.h"
 #include "GameFramework/Character.h"
-#include "GameFramework/CharacterMovementComponent.h" // Include this header
-#include "EnemyAIController.h"
+#include "GameFramework/CharacterMovementComponent.h"
 #include "MyGameModeBase.generated.h"
 
 /**
@@ -19,105 +18,70 @@ class CO2301_3DSHOOTER_API AMyGameModeBase : public AGameModeBase
 	GENERATED_BODY()
 	
 public:
-    // Constructor
     AMyGameModeBase();
 
-    // Function to increase the game score
+    // Functions accessible from Blueprints
     UFUNCTION(BlueprintCallable)
     void IncreaseScore();
 
-    // Function to update the game challenge level
-    UFUNCTION(BlueprintCallable)
-    void IncreaseChallenge();
-
     UFUNCTION(BlueprintCallable)
     void CheckGameStatus();
-
-    // Function to start the game timer
-    UFUNCTION(BlueprintCallable)
-    void GameTimer();
-
-    UFUNCTION()
-    void UpdateGameTimer();
 
     UFUNCTION(BlueprintCallable)
     void EndGameDueToTime();
 
     UFUNCTION(BlueprintCallable)
-    void MainCharacterKilled();
-
-    UFUNCTION(BlueprintCallable)
     void EndGame(bool bPlayerWon);
 
-    // Function to get the formatted countdown time (MM:SS)
     UFUNCTION(BlueprintCallable)
     FString GetFormattedCountdownTime();
 
-    // Current score of the game
-    UPROPERTY(VisibleAnywhere)
-    int CurrentScore = 0;
-
-    // Method to set the winning score
-    void SetWinScore(int32 NewWinScore);
-
-    // Score needed to win the game
-    UPROPERTY(VisibleAnywhere)
-    int32 WinScore = 0;
-
-    UFUNCTION()
-    void ExtendTime();
-
-    UPROPERTY(EditAnywhere)
-    float ExtendTimeSec = 30.0f;
-
-    UFUNCTION()
-    void EnemiesLeft();
-
-    UPROPERTY(BlueprintReadWrite)
-    int32 NumEnemiesLeft;
+    UFUNCTION(BlueprintPure)
+    int32 CSToDisplay();
 
     UFUNCTION(BlueprintPure)
     int32 GetNumEnemiesLeft();
 
-    void DisableAllCharacterInput();
+    UFUNCTION(BlueprintCallable)
+    void ExtendTime();
 
+    UFUNCTION()
     void TakeCountdown();
-    
+
+    UFUNCTION()
     void StartGame();
-
-    UPROPERTY(BlueprintReadWrite)
-    int32 ValueToDisplay;
-
-    UPROPERTY(BlueprintReadWrite)
-    int32 CurrentCountdownValue = 6;
 
     UFUNCTION(BlueprintPure)
     FString GetCurrentCountdown();
-        
+
+    UFUNCTION()
+    void DecreaseScore();
+
+    UFUNCTION()
+    void EnemiesLeft();
+
 protected:
-    // Called when the game starts or when spawned
     virtual void BeginPlay() override;
 
-    // Background music asset reference
+private:
+    // Properties
     UPROPERTY(EditDefaultsOnly)
     USoundBase* BackgroundMusic;
 
-private:
-    // Current level of challenge/difficulty in the game
     UPROPERTY(VisibleAnywhere)
-    int ChallengeLevel;
-
-    // Handle for efficient management of the game timer
     FTimerHandle GameTimerHandle;
 
+    UPROPERTY(VisibleAnywhere)
     FTimerHandle CountdownTimerHandle;
 
-    // Game duration in seconds
+    UPROPERTY(VisibleAnywhere)
+    FTimerHandle DecreaseScoreTimer;
+
     UPROPERTY(EditDefaultsOnly)
     float GameDuration;
 
-    // Timestamp for when the game will end
-    float GameEndTime;
+    UPROPERTY(EditDefaultsOnly)
+    float GameEndTime = 0.0f;
 
     UPROPERTY(EditDefaultsOnly)
     USoundBase* StartSound;
@@ -127,4 +91,25 @@ private:
 
     UPROPERTY(EditDefaultsOnly)
     USoundBase* GoCountdownSound;
+
+    UPROPERTY(VisibleAnywhere)
+    int32 CurrentScoreToDisplay = 0;
+
+    UPROPERTY(VisibleAnywhere)
+    int32 CurrentScore = 0;
+
+    UPROPERTY(VisibleAnywhere)
+    int32 WinScore = 0;
+
+    UPROPERTY(EditAnywhere)
+    float ExtendTimeSec = 30.0f;
+
+    UPROPERTY(VisibleAnywhere)
+    int32 NumEnemiesLeft = 0;
+
+    UPROPERTY(VisibleAnywhere)
+    int32 CurrentCountdownValue = 6;
+
+    UPROPERTY(VisibleAnywhere)
+    float ScoreTimer = 100.0f;
 };

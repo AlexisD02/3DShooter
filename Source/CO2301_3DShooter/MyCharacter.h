@@ -30,49 +30,9 @@ protected:
     // Called when the game starts or when spawned
     virtual void BeginPlay() override;
 
+    virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser) override;
+
 public:
-    //virtual void Tick(float DeltaTime) override;
-
-    // Components for the third-person camera setup
-    UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
-        USpringArmComponent* CameraBoom;
-
-    UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
-        UCameraComponent* FollowCamera;
-
-    UPROPERTY(EditAnywhere, BlueprintReadWrite)
-        USceneCaptureComponent2D* MiniMapCaptureComponent;
-
-    // Spring arm for mini-map camera
-    UPROPERTY(EditAnywhere)
-        USpringArmComponent* MiniMapArm;
-
-    UPROPERTY(EditAnywhere)
-        TSubclassOf<AGun> WeaponGunClass;
-
-    UPROPERTY(BlueprintReadOnly)
-        AGun* WeaponGun;
-
-    UPROPERTY(VisibleAnywhere)
-        USceneComponent* ProjectileSpawnPoint;
-
-    AEnemyCharacter* HitEnemy;
-
-    ADestructibleBarrel* HitBarrel;
-
-    UAnimInstance* AnimInstance;
-
-    // Reload animation montage
-    UPROPERTY(EditAnywhere, BlueprintReadWrite)
-    UAnimMontage* ReloadAnimationMontage;
-
-    UPROPERTY(EditAnywhere, BlueprintReadWrite)
-    UAnimMontage* ShootAnimationMontage;
-
-    UPROPERTY(EditAnywhere, BlueprintReadWrite)
-    UAnimMontage* DanceAnimationMontage;
-
-    // Function to attach the gun
     UFUNCTION(BlueprintCallable)
     void AttachGun();
 
@@ -88,27 +48,31 @@ public:
     UFUNCTION()
     void ThrowGrenade();
 
-    // Reference to the grenade class to spawn
-    UPROPERTY(EditDefaultsOnly)
-    TSubclassOf<AExplosiveProjectile> GrenadeClass;
-
-    // Input axis functions
+    UFUNCTION()
     void MoveForward(float Value);
+
+    UFUNCTION()
     void MoveRight(float Value);
 
-    // Method for handling crouch input
     UFUNCTION()
     void StandToCrouch();
 
     UFUNCTION()
     void CrouchToStand();
 
+    UFUNCTION()
     void Turn(float Value);
+
+    UFUNCTION()
     void LookUp(float Value);
 
+    UFUNCTION()
     void ToJump();
+
+    UFUNCTION()
     void ToStopJumping();
 
+    UFUNCTION()
     void Prone();
 
     UFUNCTION()
@@ -125,8 +89,22 @@ public:
 
     UFUNCTION()
     void EnableAllInput();
-   
-    // Crouch state variable exposed to Blueprint
+    
+    UFUNCTION()
+    void Reload();
+
+    UFUNCTION()
+    void UpdateBulletCountAfterReload();
+
+    UFUNCTION()
+    void DrainStamina();
+
+    UFUNCTION()
+    void RecoverStamina();
+
+    UFUNCTION()
+    void DisplayGameOverScreen();
+
     UPROPERTY(BlueprintReadWrite)
     bool bCrouchButtonDown;
 
@@ -135,49 +113,35 @@ public:
 
     UPROPERTY(BlueprintReadWrite)
     bool bIsProne;
-    
+
     UPROPERTY(BlueprintReadWrite)
     bool bIsReloading;
 
     UPROPERTY(BlueprintReadWrite)
     bool bIsRunning;
 
-    // Maximum number of bullets in a magazine
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    bool bMainPlayerDead;
+
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
-    int32 MaxMagazineSize = 15;
+    int32 MaxMagazineSize = 15; // Maximum number of bullets in a magazine
 
-    // Current number of bullets in the magazine
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-    int32 CurrentBulletsInMagazine;
+    int32 CurrentBulletsInMagazine; // Current number of bullets in the magazine
 
-    // Maximum number of magazines the character can carry
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
-    int32 MaxNumberOfMagazines = 2;
+    int32 MaxNumberOfMagazines = 2; // Maximum number of magazines the character can carry
 
-    // Total ammunition available for reloading
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-    int32 TotalAmmunition;
-    
-    // Function to handle reloading
-    UFUNCTION()
-    void Reload();
-
-    // Handle for the reload timer
-    FTimerHandle ReloadTimerHandle;
-
-    FTimerHandle DanceTimerHandle;
-
-    // Function to update the bullet count after reloading
-    void UpdateBulletCountAfterReload();
+    int32 TotalAmmunition; // Total ammunition available for reloading
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
     int32 GrenadesRemaining = 3;
 
-    // Current and maximum health for the character
     UPROPERTY(VisibleAnywhere)
-    float CurrentHealth = 100.0f;
+    float CurrentHealth = 100.0f; // Current and maximum health for the character
 
-    UPROPERTY(EditDefaultsOnly)
+    UPROPERTY(EditAnywhere)
     float MaxHealth = 100.0f;
 
     UPROPERTY(EditAnywhere)
@@ -186,7 +150,7 @@ public:
     UPROPERTY(VisibleAnywhere)
     float CurrentStamina;
 
-    UPROPERTY(EditDefaultsOnly)
+    UPROPERTY(EditAnywhere)
     float MaxStamina = 100.0f;
 
     UPROPERTY(EditAnywhere)
@@ -195,31 +159,69 @@ public:
     UPROPERTY(EditAnywhere)
     float StaminaRecoveryRate = 5.0f;
 
-    UFUNCTION()
-    void DrainStamina();
-
-    UFUNCTION()
-    void RecoverStamina();
-
-private:
     UPROPERTY(EditAnywhere)
     float SprintSpeedMultiplier;
 
-    // Range of the cast used in the fire function. Default value set to 10000 units.
     UPROPERTY(EditAnywhere)
     float CastRange = 10000.0f;
 
-    // Impulse force to be applied on the hit object. Default value set to 5000.
     UPROPERTY(EditAnywhere)
     float ImpulseForce = 5000.0f;
 
     UPROPERTY(EditAnywhere)
     float DamageAmount = 20.0f;
 
-    // Function to handle damage and possibly die
-    virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser) override;
+    UFUNCTION(BlueprintImplementableEvent)
+    void BP_MainPlayerDead();
+
+    // Components for the third-person camera setup
+    UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+    USpringArmComponent* CameraBoom;
+
+    UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+    UCameraComponent* FollowCamera;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    USceneCaptureComponent2D* MiniMapCaptureComponent;
+
+    UAnimInstance* AnimInstance;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    UAnimMontage* ReloadAnimationMontage;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    UAnimMontage* ShootAnimationMontage;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    UAnimMontage* DanceAnimationMontage;
+
+private:
+    UPROPERTY(EditAnywhere)
+    USpringArmComponent* MiniMapArm;
+
+    UPROPERTY(VisibleAnywhere)
+    USceneComponent* ProjectileSpawnPoint;
+
+    UPROPERTY(EditAnywhere)
+    USoundBase* DeathSound;
+
+    UPROPERTY(EditDefaultsOnly)
+    TSubclassOf<AGun> WeaponGunClass;
+
+    AGun* WeaponGun;
+
+    UPROPERTY(EditDefaultsOnly)
+    TSubclassOf<AExplosiveProjectile> GrenadeClass;
+
+    AExplosiveProjectile* Grenade;
+
+    FTimerHandle ReloadTimerHandle;
+
+    FTimerHandle DanceTimerHandle;
 
     FTimerHandle StaminaDrainTimerHandle;
 
     FTimerHandle StaminaRecoveryTimerHandle;
+
+    FTimerHandle GameOverTimer;
 };

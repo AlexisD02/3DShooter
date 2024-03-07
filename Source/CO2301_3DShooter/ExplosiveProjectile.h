@@ -10,7 +10,6 @@
 #include "PhysicsEngine/RadialForceComponent.h"
 #include "Sound/SoundBase.h"
 #include "Particles/ParticleSystem.h"
-#include "EnemyCharacter.h"
 
 #include "ExplosiveProjectile.generated.h"
 
@@ -20,23 +19,30 @@ class CO2301_3DSHOOTER_API AExplosiveProjectile : public AActor
 	GENERATED_BODY()
 	
 public:
-    // Sets default values for this actor's properties
-    AExplosiveProjectile();
+    AExplosiveProjectile(); // Sets default values for this actor's properties
 
 protected:
-    // Called when the game starts or when spawned
-    virtual void BeginPlay() override;
+    virtual void BeginPlay() override; // Called when the game starts or when spawned
 
 public:
-    // Called every frame
-    virtual void Tick(float DeltaTime) override;
+    UPROPERTY(EditAnywhere)
+    float ExplosionDelay = 3.0f;
 
-    // Components
+    UPROPERTY(EditAnywhere)
+    float ExplosionDamage = 80.0f;
+
+    UPROPERTY(EditAnywhere)
+    float DamageRadius = 350.0f;
+
+    UFUNCTION()
+    void OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
+
+private:
     UPROPERTY(VisibleAnywhere)
     UStaticMeshComponent* ProjectileMesh;
 
-    //UPROPERTY(VisibleAnywhere)
-    //USphereComponent* CollisionComponent;
+    UPROPERTY(VisibleAnywhere)
+    USphereComponent* CollisionComponent;
 
     UPROPERTY(VisibleAnywhere)
     UProjectileMovementComponent* MovementComponent;
@@ -47,27 +53,11 @@ public:
     UPROPERTY(EditAnywhere)
     UParticleSystem* ExplosionEffect;
 
-    // Variables
-    UPROPERTY(EditAnywhere)
-    float ExplosionDelay = 3.0f;
-
-    UPROPERTY(EditAnywhere)
-    float ExplosionDamage = 80.0f;
-
-    UPROPERTY(EditAnywhere)
-    float DamageRadius = 350.0f;
-
     UPROPERTY(EditAnywhere)
     USoundBase* ExplosionSound;
 
-    // Timer handle for the explosion delay
-    FTimerHandle ExplosionTimerHandle;
-
-    // Functions
-    void Explode();
+    FTimerHandle ExplosionTimerHandle; // Timer handle for the explosion delay
 
     UFUNCTION()
-    void OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
-
-    AEnemyCharacter* HitEnemy;
+    void Explode(); // Explode the projectile
 };

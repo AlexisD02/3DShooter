@@ -20,29 +20,14 @@ class CO2301_3DSHOOTER_API ADestructibleBarrel : public AActor
 	GENERATED_BODY()
 	
 public:	
-	// Sets default values for this actor's properties
-	ADestructibleBarrel();
+	ADestructibleBarrel(); // Sets default values for this actor's properties
 
 protected:
-	// Called when the game starts or when spawned
-	virtual void BeginPlay() override;
+	virtual void BeginPlay() override; // Called when the game starts or when spawned
 
 public:	
-    // Override the TakeDamage function to interact with Unreal's damage system
     virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
 
-    // Components
-    UPROPERTY(VisibleAnywhere)
-    UStaticMeshComponent* BarrelMesh;
-
-    UPROPERTY(VisibleAnywhere)
-    URadialForceComponent* ExplosionForce;
-
-    // Explosion effect
-    UPROPERTY(EditAnywhere)
-    UParticleSystem* ExplosionEffect;
-
-    // Damage settings
     UPROPERTY(EditDefaultsOnly)
     float ExplosionDamage = 80.0f;
 
@@ -52,17 +37,25 @@ public:
     UPROPERTY(EditDefaultsOnly)
     float ExplosionStrength = 2000.0f;
 
+    UPROPERTY(EditAnywhere)
+    float Health = 40.0f; // Health of the barrel
+
+private:
+    UPROPERTY(VisibleAnywhere)
+    UStaticMeshComponent* BarrelMesh;
+
+    UPROPERTY(VisibleAnywhere)
+    URadialForceComponent* ExplosionForce;
+
     UPROPERTY(VisibleAnywhere)
     UParticleSystemComponent* FireEffect;
+
+    UPROPERTY(EditAnywhere)
+    UParticleSystem* ExplosionEffect; // Explosion effect
 
     UPROPERTY(EditDefaultsOnly)
     USoundBase* BarrelExplosionSound;
 
-private:
-    // Health of the barrel
-    UPROPERTY(EditAnywhere)
-    float Health = 40.0f;
-
-    // Helper function to handle the explosion
-    void Explode();
+    UFUNCTION()
+    void Explode(); // Helper function to handle the explosion
 };

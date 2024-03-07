@@ -1,201 +1,151 @@
 #include "MyGameModeBase.h"
 #include "Kismet/GameplayStatics.h"
-#include "Engine/World.h"
-#include "TimerManager.h"
 #include "MyPlayerController.h"
+#include "EnemyAIController.h"
 
 AMyGameModeBase::AMyGameModeBase()
 {
-    // Initialize default values
-    ChallengeLevel = 1;
-    GameDuration = 60.0f; // 1 minutes game duration
+    GameDuration = 60.0f; // Initialize game duration to 60 seconds
 }
 
 void AMyGameModeBase::BeginPlay()
 {
     Super::BeginPlay();
 
-    // Play the start sound
-    if (StartSound)
-    {
-        UGameplayStatics::PlaySound2D(GetWorld(), StartSound);
-    }
+    AMyPlayerController* PlayerController = Cast<AMyPlayerController>(GetWorld()->GetFirstPlayerController()); // Disable input for player controller
+    if (PlayerController) PlayerController->DisableInput(PlayerController);
 
-    if (BackgroundMusic != nullptr)
-    {
-        UGameplayStatics::PlaySound2D(GetWorld(), BackgroundMusic);
-    }
+    if (StartSound) UGameplayStatics::PlaySound2D(GetWorld(), StartSound); // Play start sound if available
 
-    // Call the method to initialize enemies and other game elements
-    AEnemyCharacter::InitializeEnemyCountForGameMode(GetWorld());
+    if (BackgroundMusic) UGameplayStatics::PlaySound2D(GetWorld(), BackgroundMusic); // Play background music if available
 
-    DisableAllCharacterInput();
+    // Set countdown timer and decrease score timer
     GetWorldTimerManager().SetTimer(CountdownTimerHandle, this, &AMyGameModeBase::TakeCountdown, 1.0f, true);
-}
-
-void AMyGameModeBase::DisableAllCharacterInput()
-{
-    AMyPlayerController* PlayerController = Cast<AMyPlayerController>(GetWorld()->GetFirstPlayerController());
-    if (PlayerController)
-    {
-        // Disable input for this character's controller
-        PlayerController->DisableInput(PlayerController);
-    }
+    GetWorldTimerManager().SetTimer(DecreaseScoreTimer, this, &AMyGameModeBase::DecreaseScore, 10.0f, true);
 }
 
 void AMyGameModeBase::TakeCountdown()
 {
-    CurrentCountdownValue--;
+    CurrentCountdownValue--; // Decrease countdown value
 
-    if (CurrentCountdownValue <= 0) {
-        StartGame();
-    }
-    else {
-        if (CurrentCountdownValue == 1 && GoCountdownSound) {
-            UGameplayStatics::PlaySound2D(GetWorld(), GoCountdownSound);
-        }
-        else if (CountdownSound) {
-            UGameplayStatics::PlaySound2D(GetWorld(), CountdownSound);
-        }
-    }
+    if (CurrentCountdownValue <= 0) StartGame(); 
+    // Play appropriate sound based on countdown value
+    else UGameplayStatics::PlaySound2D(GetWorld(), (CurrentCountdownValue == 1 && GoCountdownSound) ? GoCountdownSound : CountdownSound);
 }
 
 FString AMyGameModeBase::GetCurrentCountdown()
 {
-    ValueToDisplay = CurrentCountdownValue - 1;
-    if (ValueToDisplay <= 0)
-    {
-        return FString("GO!");
-    }
-    else
-    {
-        // Convert int32 to FString
-        return FString::FromInt(ValueToDisplay);
-    }
+    return (CurrentCountdownValue == 1) ? FString("GO!") : FString::FromInt(CurrentCountdownValue - 1); // Return formatted countdown string
 }
 
 void AMyGameModeBase::StartGame()
 {
-    GetWorldTimerManager().ClearTimer(CountdownTimerHandle);
+    GetWorldTimerManager().ClearTimer(CountdownTimerHandle); // Clear countdown timer
 
-    TArray<AActor*> FoundActors;
+    // Enable behavior tree for enemy controllers
+    TArray<AActor*> FoundActors; 
     UGameplayStatics::GetAllActorsOfClass(GetWorld(), AEnemyAIController::StaticClass(), FoundActors);
-
     for (AActor* Actor : FoundActors) {
         AEnemyAIController* EnemyControllerRef = Cast<AEnemyAIController>(Actor);
         if (EnemyControllerRef) {
-            // Assuming EnableBehaviorTree is a function in AEnemyAIController
             EnemyControllerRef->EnableBehaviorTree();
         }
     }
 
+    WinScore = NumEnemiesLeft = FoundActors.Num(); // Get and set the number of enemies and the win score
+
+    // Enable input for player controller and start the game
     AMyPlayerController* PlayerController = Cast<AMyPlayerController>(GetWorld()->GetFirstPlayerController());
     if (PlayerController) {
-        // Disable input for this character's controller
         PlayerController->EnableInput(PlayerController);
         PlayerController->StartGame();
     }
 
-    // Start the main game timer
-    GameTimer();
-}
-
-void AMyGameModeBase::SetWinScore(int32 EnemyCount)
-{
-    WinScore = EnemyCount;
-    NumEnemiesLeft = EnemyCount;
-    // Optionally, log the new WinScore for debugging
-    UE_LOG(LogTemp, Warning, TEXT("WinScore set to: %d"), WinScore);
-}
-
-void AMyGameModeBase::EnemiesLeft()
-{
-    NumEnemiesLeft--;
-    UE_LOG(LogTemp, Warning, TEXT("WinScore set to: %d"), NumEnemiesLeft);
-}
-
-
-void AMyGameModeBase::GameTimer()
-{
-    GameEndTime = GetWorld()->GetTimeSeconds() + GameDuration;
+    // Set game end time and timer
+    GameEndTime = GameDuration + GetWorld()->GetTimeSeconds();
     GetWorldTimerManager().SetTimer(GameTimerHandle, this, &AMyGameModeBase::EndGameDueToTime, GameDuration, false);
-}
-
-void AMyGameModeBase::UpdateGameTimer()
-{
-    // Calculate the end time of the game
-    GameEndTime = GetWorld()->GetTimeSeconds() + GameDuration;
-
-    // Calculate the remaining time
-    float RemainingTime = GameEndTime - GetWorld()->GetTimeSeconds();
-
-    // Cancel the existing timer and set a new one with the updated remaining time
-    GetWorldTimerManager().ClearTimer(GameTimerHandle);
-    GetWorldTimerManager().SetTimer(GameTimerHandle, this, &AMyGameModeBase::EndGameDueToTime, RemainingTime, false);
-
-    // You can use the remaining time as needed, for example, print it to the console
-    UE_LOG(LogTemp, Warning, TEXT("Remaining Time: %f seconds"), RemainingTime);
-}
-
-FString AMyGameModeBase::GetFormattedCountdownTime()
-{
-    int32 RemainingTime = FMath::Max(0.0f, GameEndTime - GetWorld()->GetTimeSeconds());
-    int32 Minutes = RemainingTime / 60;
-    int32 Seconds = RemainingTime % 60;
-    return FString::Printf(TEXT("%02d:%02d"), Minutes, Seconds);
-}
-
-int32 AMyGameModeBase::GetNumEnemiesLeft()
-{
-    return NumEnemiesLeft;
-}
-
-void AMyGameModeBase::IncreaseScore()
-{
-    CurrentScore++;
-    CheckGameStatus();
-}
-
-void AMyGameModeBase::IncreaseChallenge()
-{
-    ChallengeLevel++;
-    // Implement logic for increasing game difficulty here
 }
 
 void AMyGameModeBase::ExtendTime()
 {
+    // Calculate the remaining time left in the current game session
     float RemainingTime = GameEndTime - GetWorld()->GetTimeSeconds();
-    GameDuration = RemainingTime + ExtendTimeSec;
-    UpdateGameTimer();
+
+    // Extend the game duration
+    GameDuration += ExtendTimeSec;
+
+    // Update the game end time
+    GameEndTime = GetWorld()->GetTimeSeconds() + RemainingTime + ExtendTimeSec;
+
+    // Update the game timer with the new end time and remaining time
+    GetWorldTimerManager().ClearTimer(GameTimerHandle);
+    GetWorldTimerManager().SetTimer(GameTimerHandle, this, &AMyGameModeBase::EndGameDueToTime, RemainingTime + ExtendTimeSec, false);
+}
+
+FString AMyGameModeBase::GetFormattedCountdownTime()
+{
+    // Calculate the remaining time left in the current game session
+    int32 RemainingTime = FMath::Max(0.0f, GameEndTime - GetWorld()->GetTimeSeconds());
+
+    // Calculate minutes and seconds
+    int32 Minutes = RemainingTime / 60;
+    int32 Seconds = RemainingTime % 60;
+
+    // Format the countdown time
+    return FString::Printf(TEXT("%02d:%02d"), Minutes, Seconds);
+}
+
+int32 AMyGameModeBase::CSToDisplay()
+{
+    return CurrentScoreToDisplay; // Return current score to display
+}
+
+void AMyGameModeBase::EnemiesLeft()
+{
+    NumEnemiesLeft--; // Decrement number of enemies left
+}
+
+int32 AMyGameModeBase::GetNumEnemiesLeft()
+{
+    return NumEnemiesLeft; // Return number of enemies left
+}
+
+void AMyGameModeBase::DecreaseScore()
+{
+    // Decrease score based on timer value
+    if (ScoreTimer <= 100 && ScoreTimer >= 80) ScoreTimer -= 10.0f;
+    else if (ScoreTimer < 80 && ScoreTimer >= 60) ScoreTimer -= 7.0f;
+    else if (ScoreTimer < 60 && ScoreTimer >= 40) ScoreTimer -= 5.0f;
+    else if (ScoreTimer < 40 && ScoreTimer >= 20) ScoreTimer -= 3.0f;
+    else if (ScoreTimer < 20 && ScoreTimer > 10) ScoreTimer -= 2.0f;
+}
+
+void AMyGameModeBase::IncreaseScore()
+{
+    CurrentScore++; // Increase current score
+    CurrentScoreToDisplay += ScoreTimer; // Update current score to display
+    CheckGameStatus(); // Check game status for win condition
 }
 
 void AMyGameModeBase::CheckGameStatus()
 {
-    if (CurrentScore >= WinScore) {
-        EndGame(true); // Player wins
-    }
-    // No else, as losing conditions are checked elsewhere
+    if (CurrentScore >= WinScore) EndGame(true); // If win condition met, end game with player winning
 }
 
 void AMyGameModeBase::EndGameDueToTime()
 {
-    UGameplayStatics::OpenLevel(GetWorld(), "LoseLevelTimeUp");
-    GetWorldTimerManager().ClearTimer(GameTimerHandle);
-}
+    // Get the current world context
+    UWorld* World = GetWorld();
 
-void AMyGameModeBase::MainCharacterKilled()
-{
-    EndGame(false); // Player loses
+    if (World) {
+        FName LoseLevelTimeUp = FName(TEXT("/Game/Levels/LoseLevelTimeUp"));
+        UGameplayStatics::OpenLevel(World, LoseLevelTimeUp); // Open lose level due to time up
+    }
 }
 
 void AMyGameModeBase::EndGame(bool bPlayerWon)
 {
-    if (bPlayerWon) {
-        UGameplayStatics::OpenLevel(GetWorld(), "WinLevel");
-    }
-    else {
-        UGameplayStatics::OpenLevel(GetWorld(), "LoseLevel");
-    }
-    // Clear the game timer if it's still running
-    GetWorldTimerManager().ClearTimer(GameTimerHandle);
+    FName WinLevel = FName(TEXT("/Game/Levels/WinLevel"));
+    FName LoseLevel = FName(TEXT("/Game/Levels/LoseLevel"));
+    UGameplayStatics::OpenLevel(this, bPlayerWon ? WinLevel : LoseLevel); // Open win or lose level based on game outcome
 }

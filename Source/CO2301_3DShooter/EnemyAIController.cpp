@@ -10,16 +10,6 @@ AEnemyAIController::AEnemyAIController()
 {
 }
 
-void AEnemyAIController::BeginPlay()
-{
-    Super::BeginPlay();
-}
-
-void AEnemyAIController::Tick(float DeltaTime)
-{
-    Super::Tick(DeltaTime);
-}
-
 void AEnemyAIController::EnableBehaviorTree()
 {
     if (EnemyBehaviorTree) {

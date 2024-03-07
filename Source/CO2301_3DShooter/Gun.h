@@ -14,32 +14,24 @@ class CO2301_3DSHOOTER_API AGun : public AActor
 	GENERATED_BODY()
 	
 public:	
-	// Sets default values for this actor's properties
 	AGun();
 
-protected:
-	// Called when the game starts or when spawned
-	virtual void BeginPlay() override;
+	UFUNCTION()
+	void Fire();
 
-public:	
-	//// Called every frame
-	//virtual void Tick(float DeltaTime) override;
+	UFUNCTION()
+	void EmptyMug();
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	USkeletalMeshComponent* WeaponGunMesh;
 
+private:
 	UPROPERTY(EditAnywhere)
 	USoundBase* FireSound;
 
 	UPROPERTY(EditAnywhere)
 	USoundBase* EmptyMugSound;
 
-	// Particle system for muzzle flash
 	UPROPERTY(EditAnywhere)
 	UParticleSystem* MuzzleFlash;
-
-	// Function to trigger firing mechanics
-	void Fire();
-
-	void EmptyMug();
 };

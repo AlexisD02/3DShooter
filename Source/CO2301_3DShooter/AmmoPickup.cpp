@@ -19,7 +19,7 @@ AAmmoPickup::AAmmoPickup()
     // Set default values for the components.
     AmmoBoxMesh->SetupAttachment(RootComponent);
     CollisionBox->SetupAttachment(AmmoBoxMesh);
-    CollisionBox->SetBoxExtent(FVector(500.0f, 500.0f, 500.0f)); // Adjust the size as needed
+    CollisionBox->SetBoxExtent(FVector(500.0f, 500.0f, 500.0f));
     CollisionBox->SetCollisionProfileName(TEXT("Trigger"));
 }
 
@@ -38,9 +38,7 @@ void AAmmoPickup::Tick(float DeltaTime)
     Super::Tick(DeltaTime); // Call parent class tick function
 
     // Rotate the actor
-    FRotator NewRotation = GetActorRotation();
-    NewRotation.Yaw += RotationSpeed * DeltaTime;
-    SetActorRotation(NewRotation);
+    AddActorLocalRotation(FRotator(0.f, RotationSpeed * DeltaTime, 0.f));
 
     // Float the actor up and down
     FVector NewLocation = GetActorLocation();
