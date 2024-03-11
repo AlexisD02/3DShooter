@@ -20,7 +20,6 @@ This project presents a third-person shooter game prototype developed in Unreal 
 - **Damage System**: Integration of the `UGameplayStatics::ApplyDamage` method for actor damage handling.
 - **Projectile Mechanics**: Use of the `UProjectileComponent` for firing mechanics with damage application.
 - **Timers and Triggers**: In-game timers and event-driven gameplay through trigger events.
-- **Source Control**: Project versioning and collaboration via GitHub.
 
 ## Elite Mechanics
 
