@@ -77,6 +77,13 @@ void AMyPlayerController::InitializeGuide()
     }
 }
 
+void AMyPlayerController::RemoveAllWidgets()
+{
+    if (CrosshairWidget) CrosshairWidget->RemoveFromParent();
+    if (TimerWidget) TimerWidget->RemoveFromParent();
+    if (MiniMapWidget) MiniMapWidget->RemoveFromParent();
+}
+
 void AMyPlayerController::RemoveGuideFromViewport()
 {
     // Remove the widget from the viewport
@@ -104,7 +111,9 @@ void AMyPlayerController::InitializeMiniMap()
 {
     if (MiniMapWidgetClass) {
         MiniMapWidget = CreateWidget(this, MiniMapWidgetClass);
-        if (MiniMapWidget) MiniMapWidget->AddToViewport();
+        if (MiniMapWidget) {
+            MiniMapWidget->AddToViewport();
+        }
     }
 }
 
@@ -122,7 +131,48 @@ void AMyPlayerController::TogglePauseMenu()
     }
 }
 
-// Function implementations
+void AMyPlayerController::DisplayWinScreen()
+{
+    if (!WinScreenWidget && WinScreenWidgetClass) { // Create the pause menu widget if it doesn't exist
+        WinScreenWidget = CreateWidget(this, WinScreenWidgetClass);
+    }
+
+    if (WinScreenWidget) { // Add the widget to the viewport and pause the game
+        WinScreenWidget->AddToViewport();
+        SetInputMode(FInputModeUIOnly());
+        bShowMouseCursor = true;
+        SetPause(true);
+    }
+}
+
+void AMyPlayerController::DisplayLoseScreen()
+{
+    if (!LoseScreenWidget && LoseScreenWidgetClass) { // Create the pause menu widget if it doesn't exist
+        LoseScreenWidget = CreateWidget(this, LoseScreenWidgetClass);
+    }
+
+    if (LoseScreenWidget) { // Add the widget to the viewport and pause the game
+        LoseScreenWidget->AddToViewport();
+        SetInputMode(FInputModeUIOnly());
+        bShowMouseCursor = true;
+        SetPause(true);
+    }
+}
+
+void AMyPlayerController::DisplayLoseTimeUpScreen()
+{
+    if (!LoseScreenTimeUpWidget && LoseScreenTimeUpWidgetClass) { // Create the pause menu widget if it doesn't exist
+        LoseScreenTimeUpWidget = CreateWidget(this, LoseScreenTimeUpWidgetClass);
+    }
+
+    if (LoseScreenTimeUpWidget) { // Add the widget to the viewport and pause the game
+        LoseScreenTimeUpWidget->AddToViewport();
+        SetInputMode(FInputModeUIOnly());
+        bShowMouseCursor = true;
+        SetPause(true);
+    }
+}
+
 void AMyPlayerController::CallJump()
 {
     if (ControlledCharacter) ControlledCharacter->ToJump();

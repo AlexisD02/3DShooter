@@ -129,23 +129,29 @@ void AMyGameModeBase::IncreaseScore()
 
 void AMyGameModeBase::CheckGameStatus()
 {
-    if (CurrentScore >= WinScore) EndGame(true); // If win condition met, end game with player winning
+    if (CurrentScore >= WinScore) {
+        AMyPlayerController* PlayerController = Cast<AMyPlayerController>(GetWorld()->GetFirstPlayerController());
+        if (PlayerController) PlayerController->RemoveAllWidgets();
+
+        GetWorldTimerManager().SetTimer(EndGameTimer, [this](){ EndGame(true); }, DurationEnd, false);
+    }
 }
 
 void AMyGameModeBase::EndGameDueToTime()
 {
-    // Get the current world context
-    UWorld* World = GetWorld();
-
-    if (World) {
-        FName LoseLevelTimeUp = FName(TEXT("/Game/Levels/LoseLevelTimeUp"));
-        UGameplayStatics::OpenLevel(World, LoseLevelTimeUp); // Open lose level due to time up
-    }
+    AMyPlayerController* PlayerController = Cast<AMyPlayerController>(GetWorld()->GetFirstPlayerController());
+    if (PlayerController) PlayerController->RemoveAllWidgets();
+    if (PlayerController) PlayerController->DisplayLoseTimeUpScreen();
 }
 
 void AMyGameModeBase::EndGame(bool bPlayerWon)
 {
-    FName WinLevel = FName(TEXT("/Game/Levels/WinLevel"));
-    FName LoseLevel = FName(TEXT("/Game/Levels/LoseLevel"));
-    UGameplayStatics::OpenLevel(this, bPlayerWon ? WinLevel : LoseLevel); // Open win or lose level based on game outcome
+    AMyPlayerController* PlayerController = Cast<AMyPlayerController>(GetWorld()->GetFirstPlayerController());
+
+    if (bPlayerWon) {
+        if (PlayerController) PlayerController->DisplayWinScreen();
+    }
+    else {
+        if (PlayerController) PlayerController->DisplayLoseScreen();
+    }
 }

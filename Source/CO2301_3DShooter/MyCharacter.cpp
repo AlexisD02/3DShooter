@@ -352,8 +352,9 @@ float AMyCharacter::TakeDamage(float DamageAmountChar, FDamageEvent const& Damag
         bMainPlayerDead = true;
         BP_MainPlayerDead();
         AMyPlayerController* PlayerController = Cast<AMyPlayerController>(GetWorld()->GetFirstPlayerController());
-        PlayerController->DisableInput(PlayerController);
+        if (PlayerController) PlayerController->DisableInput(PlayerController);
         if (DeathSound) UGameplayStatics::PlaySoundAtLocation(this, DeathSound, GetActorLocation());
+        if (PlayerController) PlayerController->RemoveAllWidgets();
         GetWorldTimerManager().SetTimer(GameOverTimer, this, &AMyCharacter::DisplayGameOverScreen, 2.0f, false);
     }
 

@@ -78,9 +78,6 @@ private:
     void InitializeCrosshair();
 
     UFUNCTION()
-    void TogglePauseMenu();
-
-    UFUNCTION()
     void InitializeMiniMap();
 
     UFUNCTION()
@@ -91,6 +88,9 @@ private:
 
     UFUNCTION()
     void RemoveGuideFromViewport();
+
+    UFUNCTION()
+    void TogglePauseMenu();
 
     AMyCharacter* ControlledCharacter;
 
@@ -107,6 +107,24 @@ private:
 
     UPROPERTY()
     UUserWidget* PauseMenuWidget;
+
+    UPROPERTY(EditDefaultsOnly)
+    TSubclassOf<UUserWidget> WinScreenWidgetClass;
+
+    UPROPERTY()
+    UUserWidget* WinScreenWidget;
+
+    UPROPERTY(EditDefaultsOnly)
+    TSubclassOf<UUserWidget> LoseScreenWidgetClass;
+
+    UPROPERTY()
+    UUserWidget* LoseScreenWidget;
+
+    UPROPERTY(EditDefaultsOnly)
+    TSubclassOf<UUserWidget> LoseScreenTimeUpWidgetClass;
+
+    UPROPERTY()
+    UUserWidget* LoseScreenTimeUpWidget;
 
     UPROPERTY(EditDefaultsOnly)
     TSubclassOf<UUserWidget> TimerWidgetClass;
@@ -152,4 +170,16 @@ public:
 
     UFUNCTION(BlueprintPure)
     int32 GetGrenadesRemaining();
+
+    UFUNCTION()
+    void DisplayWinScreen();
+
+    UFUNCTION()
+    void DisplayLoseScreen();
+
+    UFUNCTION()
+    void DisplayLoseTimeUpScreen();
+
+    UFUNCTION()
+    void RemoveAllWidgets();
 };

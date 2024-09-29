@@ -77,6 +77,9 @@ private:
     UPROPERTY(VisibleAnywhere)
     FTimerHandle DecreaseScoreTimer;
 
+    UPROPERTY(VisibleAnywhere)
+    FTimerHandle EndGameTimer;
+
     UPROPERTY(EditDefaultsOnly)
     float GameDuration;
 
@@ -112,4 +115,7 @@ private:
 
     UPROPERTY(VisibleAnywhere)
     float ScoreTimer = 100.0f;
+
+    UPROPERTY(EditAnywhere)
+    float DurationEnd = 2.0f;
 };
